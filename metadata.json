@@ -1,0 +1,6 @@
+{
+  "name": "EXOO GAMES",
+  "description": "A premium gaming platform app with Steam accounts, cloud gaming, and free games.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
