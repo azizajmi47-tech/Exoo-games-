@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Game::class, SteamAccount::class, User::class, UserRating::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class ExooDatabase : RoomDatabase() {

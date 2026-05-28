@@ -20,7 +20,7 @@ import com.example.ui.theme.*
 fun FreeGamesScreen(viewModel: ExooViewModel) {
     val query by viewModel.searchQuery.collectAsState()
     val genre by viewModel.selectedGenre.collectAsState()
-    val games by viewModel.repository.getFreeGames(query, genre).collectAsState(initial = emptyList())
+    val games by remember(query, genre) { viewModel.repository.getFreeGames(query, genre) }.collectAsState(initial = emptyList())
     
     val genres = listOf("Action", "RPG", "FPS", "Strategy", "Adventure")
     var isDropdownExpanded by remember { mutableStateOf(false) }

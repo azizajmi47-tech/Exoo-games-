@@ -25,13 +25,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.ui.platform.LocalUriHandler
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
 import com.example.ui.theme.*
 
 @Composable
 fun CloudGamingScreen(viewModel: ExooViewModel) {
     val query by viewModel.searchQuery.collectAsState()
     val genre by viewModel.selectedGenre.collectAsState()
-    val games by viewModel.repository.getCloudGames(query, genre).collectAsState(initial = emptyList())
+    val games by remember(query, genre) { viewModel.repository.getCloudGames(query, genre) }.collectAsState(initial = emptyList())
     
     val genres = listOf("Action", "RPG", "FPS", "Strategy", "Adventure")
     var isDropdownExpanded by remember { mutableStateOf(false) }
@@ -43,7 +48,7 @@ fun CloudGamingScreen(viewModel: ExooViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "CLOUD GAMING", 
+                "EMULATORS", 
                 fontSize = 14.sp, 
                 fontWeight = FontWeight.Bold, 
                 color = ExooTextSecondary,
@@ -64,7 +69,7 @@ fun CloudGamingScreen(viewModel: ExooViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
 
         if (games.isEmpty()) {
-            Text("No cloud games found.", color = ExooTextSecondary)
+            Text("No emulators found.", color = ExooTextSecondary)
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -80,6 +85,9 @@ fun CloudGamingScreen(viewModel: ExooViewModel) {
 @Composable
 fun GameCard(game: Game, viewModel: ExooViewModel) {
     val currentUser by viewModel.currentUser.collectAsState()
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+    
     Card(
         colors = CardDefaults.cardColors(containerColor = ExooCard),
         modifier = Modifier.fillMaxWidth(),
@@ -92,7 +100,19 @@ fun GameCard(game: Game, viewModel: ExooViewModel) {
                     .fillMaxWidth()
                     .height(120.dp)
                     .background(Color(0xFF1e293b))
-            )
+            ) {
+                if (game.coverImageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(game.coverImageUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Cover Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(game.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = ExooTextPrimary, maxLines = 1)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -126,13 +146,17 @@ fun GameCard(game: Game, viewModel: ExooViewModel) {
                     Spacer(modifier = Modifier.height(8.dp))
                 }
                 Button(
-                    onClick = {},
+                    onClick = { 
+                        if (game.actionUrl.isNotEmpty()) {
+                            try { uriHandler.openUri(game.actionUrl) } catch (e: Exception) {}
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().height(36.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = ExooAccentBlue),
                     contentPadding = PaddingValues(0.dp)
                 ) {
-                    Text("PLAY NOW", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ExooBackground)
+                    Text("DOWNLOAD", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ExooBackground)
                 }
             }
         }

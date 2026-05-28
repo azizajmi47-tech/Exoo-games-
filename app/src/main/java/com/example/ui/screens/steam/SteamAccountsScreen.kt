@@ -17,6 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import com.example.ExooViewModel
 import com.example.data.local.SteamAccount
 import com.example.ui.theme.*
@@ -24,7 +30,7 @@ import com.example.ui.theme.*
 @Composable
 fun SteamAccountsScreen(viewModel: ExooViewModel) {
     val query by viewModel.searchQuery.collectAsState()
-    val accounts by viewModel.repository.getSteamAccounts(query).collectAsState(initial = emptyList())
+    val accounts by remember(query) { viewModel.repository.getSteamAccounts(query) }.collectAsState(initial = emptyList())
     val currentUser by viewModel.currentUser.collectAsState()
 
     LazyColumn(
@@ -61,6 +67,9 @@ fun SteamAccountsScreen(viewModel: ExooViewModel) {
 
 @Composable
 fun SteamAccountCard(account: SteamAccount, isLoggedIn: Boolean) {
+    var showCredentials by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    
     Card(
         modifier = Modifier.fillMaxWidth().let { if (!account.isAvailable) it.fillMaxWidth(0.9f) else it },
         colors = CardDefaults.cardColors(containerColor = ExooCard),
@@ -76,7 +85,16 @@ fun SteamAccountCard(account: SteamAccount, isLoggedIn: Boolean) {
                         .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.AccountCircle, contentDescription = null, tint = if (account.isAvailable) ExooAccentPurple else ExooAccentBlue)
+                    if (account.avatarUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context).data(account.avatarUrl).crossfade(true).build(),
+                            contentDescription = "Avatar",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(4.dp))
+                        )
+                    } else {
+                        Icon(Icons.Default.AccountCircle, contentDescription = null, tint = if (account.isAvailable) ExooAccentPurple else ExooAccentBlue)
+                    }
                 }
                 
                 Box(
@@ -101,9 +119,26 @@ fun SteamAccountCard(account: SteamAccount, isLoggedIn: Boolean) {
             Text(account.username, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = ExooTextPrimary)
             Text(account.availableGames, fontSize = 10.sp, color = ExooTextSecondary)
             
+            if (isLoggedIn && showCredentials) {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = account.password,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Password", color = ExooTextSecondary, fontSize = 10.sp) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = ExooAccentPurple,
+                        unfocusedBorderColor = ExooCardBorder,
+                        focusedTextColor = ExooTextPrimary,
+                        unfocusedTextColor = ExooTextPrimary
+                    )
+                )
+            }
+            
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { /* View details logic */ },
+                onClick = { if (isLoggedIn) showCredentials = !showCredentials },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = isLoggedIn,
                 colors = ButtonDefaults.buttonColors(
@@ -112,7 +147,7 @@ fun SteamAccountCard(account: SteamAccount, isLoggedIn: Boolean) {
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(if (isLoggedIn) "VIEW CREDENTIALS" else "LOGIN TO VIEW", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(if (!isLoggedIn) "LOGIN TO VIEW" else if (showCredentials) "HIDE CREDENTIALS" else "VIEW CREDENTIALS", fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

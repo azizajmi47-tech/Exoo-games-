@@ -49,13 +49,13 @@ class ExooViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun login(email: String) {
-        viewModelScope.launch {
-            val user = repository.getUserByEmail(email)
-            if (user != null) {
-                _currentUser.value = user
-            }
+    suspend fun login(email: String): Boolean {
+        val user = repository.getUserByEmail(email.trim().lowercase())
+        if (user != null) {
+            _currentUser.value = user
+            return true
         }
+        return false
     }
     
     fun logout() {

@@ -22,8 +22,8 @@ import com.example.ui.theme.*
 
 @Composable
 fun HomeScreen(viewModel: ExooViewModel) {
-    val featuredGames by viewModel.repository.getFeaturedGames().collectAsState(initial = emptyList())
-    val stats by viewModel.repository.getStats().collectAsState(initial = null)
+    val featuredGames by remember { viewModel.repository.getFeaturedGames() }.collectAsState(initial = emptyList())
+    val stats by remember { viewModel.repository.getStats() }.collectAsState(initial = null)
 
     LazyColumn(
         modifier = Modifier

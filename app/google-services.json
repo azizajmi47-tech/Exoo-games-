@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "534757847588",
+    "firebase_url": "https://aziz-8650e-default-rtdb.firebaseio.com",
+    "project_id": "aziz-8650e",
+    "storage_bucket": "aziz-8650e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534757847588:android:49e70e92572a0b69ad1eb1",
+        "android_client_info": {
+          "package_name": "com.aistudio.exoogames.mptkzz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "534757847588-92pm7n8vdujj8157hsq86gs1h3u4eggf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPo6G6Et-nXpI4D-K2CHyu5mv4d95lDtQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "534757847588-92pm7n8vdujj8157hsq86gs1h3u4eggf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

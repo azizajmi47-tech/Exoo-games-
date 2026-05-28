@@ -30,6 +30,7 @@ data class Game(
 data class SteamAccount(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val username: String,
+    val password: String = "",
     val avatarUrl: String,
     val availableGames: String, // Comma separated string for simplicity
     val isAvailable: Boolean = true
