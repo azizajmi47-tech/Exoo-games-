@@ -34,3 +34,11 @@ data class SteamAccount(
     val availableGames: String, // Comma separated string for simplicity
     val isAvailable: Boolean = true
 )
+
+@Entity(tableName = "user_ratings")
+data class UserRating(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val userId: Int,
+    val gameId: Int,
+    val rating: Int
+)

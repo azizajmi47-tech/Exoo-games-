@@ -55,52 +55,74 @@ fun ExooApp() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
+    val searchQuery by viewModel.searchQuery.collectAsState()
+
     Scaffold(
         containerColor = ExooBackground,
         topBar = {
-            TopAppBar(
-                title = { 
-                    Column {
-                        Text(
-                            "EXOO GAMES", 
-                            fontWeight = FontWeight.Bold, 
-                            style = TextStyle(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(ExooAccentPurple, ExooAccentBlue)
-                                )
-                            ),
-                            letterSpacing = 2.sp
-                        )
-                        Text(
-                            "PREMIUM PORTAL",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = ExooTextSecondary,
-                            letterSpacing = 2.sp
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = ExooBackground,
-                    titleContentColor = ExooTextPrimary
-                ),
-                actions = {
-                    if (currentUser == null) {
-                        TextButton(onClick = { navController.navigate(Routes.Auth) }) {
-                            Text("LOGIN", color = ExooTextPrimary)
+            Column {
+                TopAppBar(
+                    title = { 
+                        Column {
+                            Text(
+                                "EXOO GAMES", 
+                                fontWeight = FontWeight.Bold, 
+                                style = TextStyle(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(ExooAccentPurple, ExooAccentBlue)
+                                    )
+                                ),
+                                letterSpacing = 2.sp
+                            )
+                            Text(
+                                "PREMIUM PORTAL",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = ExooTextSecondary,
+                                letterSpacing = 2.sp
+                            )
                         }
-                    } else {
-                        if (currentUser?.role == "admin") {
-                            IconButton(onClick = { navController.navigate(Routes.Admin) }, modifier = Modifier.clip(CircleShape).background(ExooCard)) {
-                                Icon(Icons.Default.Settings, contentDescription = "Admin Area", tint = ExooTextSecondary)
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = ExooBackground,
+                        titleContentColor = ExooTextPrimary
+                    ),
+                    actions = {
+                        if (currentUser == null) {
+                            TextButton(onClick = { navController.navigate(Routes.Auth) }) {
+                                Text("LOGIN", color = ExooTextPrimary)
+                            }
+                        } else {
+                            if (currentUser?.role == "admin") {
+                                IconButton(onClick = { navController.navigate(Routes.Admin) }, modifier = Modifier.clip(CircleShape).background(ExooCard)) {
+                                    Icon(Icons.Default.Settings, contentDescription = "Admin Area", tint = ExooTextSecondary)
+                                }
+                            }
+                            IconButton(onClick = { viewModel.logout() }, modifier = Modifier.padding(start = 8.dp, end = 8.dp).clip(CircleShape).background(Brush.linearGradient(listOf(ExooAccentPurple, Color(0xFF4b44cc))))) {
+                                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = ExooTextPrimary)
                             }
                         }
-                        IconButton(onClick = { viewModel.logout() }, modifier = Modifier.padding(start = 8.dp, end = 8.dp).clip(CircleShape).background(Brush.linearGradient(listOf(ExooAccentPurple, Color(0xFF4b44cc))))) {
-                            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = ExooTextPrimary)
-                        }
                     }
-                }
-            )
+                )
+                // Search Bar
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { viewModel.updateSearchQuery(it) },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).height(50.dp),
+                    placeholder = { Text("Search games, accounts...", color = ExooTextSecondary, fontSize = 14.sp) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = ExooTextSecondary, modifier = Modifier.size(20.dp)) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = ExooCard,
+                        unfocusedContainerColor = ExooCard,
+                        focusedBorderColor = ExooAccentPurple,
+                        unfocusedBorderColor = ExooCardBorder,
+                        focusedTextColor = ExooTextPrimary,
+                        unfocusedTextColor = ExooTextPrimary
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(25.dp),
+                    singleLine = true
+                )
+            }
         },
         bottomBar = {
             val items = listOf(

@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
 fun AdminScreen(viewModel: ExooViewModel) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    val allGames by viewModel.repository.getFeaturedGames().collectAsState(initial = emptyList())
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -29,13 +31,13 @@ fun AdminScreen(viewModel: ExooViewModel) {
                     viewModel.repository.addGame(
                         Game(
                             name = "Cyberpunk", description = "Future City",
-                            coverImageUrl = "", type = "cloud", platform = "GeForce Now", isFeatured = true
+                            coverImageUrl = "", type = "cloud", platform = "GeForce Now", isFeatured = true, genre = "RPG"
                         )
                     )
                     viewModel.repository.addGame(
                         Game(
                             name = "CS:GO", description = "FPS",
-                            coverImageUrl = "", type = "free", platform = "PC"
+                            coverImageUrl = "", type = "free", platform = "PC", genre = "FPS"
                         )
                     )
                     viewModel.repository.addSteamAccount(
@@ -63,6 +65,32 @@ fun AdminScreen(viewModel: ExooViewModel) {
                     TextButton(onClick = { /* TODO */ }) { Text("Manage Cloud Games") }
                     TextButton(onClick = { /* TODO */ }) { Text("Manage Free Games") }
                     TextButton(onClick = { /* TODO */ }) { Text("Manage Users") }
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Game Ratings Management", fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn {
+                items(allGames.size) { index ->
+                    val game = allGames[index]
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(game.name, fontWeight = FontWeight.Bold)
+                            Text("Current Rating: ${if (game.rating > 0f) String.format("%.1f", game.rating) else "None"}")
+                        }
+                        TextButton(onClick = { 
+                            coroutineScope.launch { 
+                                viewModel.repository.addGame(game.copy(rating = 0f)) 
+                                snackbarHostState.showSnackbar("Reset rating for ${game.name}")
+                            } 
+                        }) {
+                            Text("Reset", color = MaterialTheme.colorScheme.error)
+                        }
+                    }
                 }
             }
         }

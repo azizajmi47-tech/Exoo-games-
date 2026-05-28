@@ -9,22 +9,39 @@ class ExooRepository(context: Context) {
     private val db = Room.databaseBuilder(
         context.applicationContext,
         ExooDatabase::class.java, "exoo-database"
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 
     private val gameDao = db.gameDao()
     private val steamAccountDao = db.steamAccountDao()
     private val userDao = db.userDao()
+    private val userRatingDao = db.userRatingDao()
 
     // --- Games ---
-    fun getCloudGames(): Flow<List<Game>> = gameDao.getGamesByType("cloud")
-    fun getFreeGames(): Flow<List<Game>> = gameDao.getGamesByType("free")
+    fun getCloudGames(query: String = "", genre: String = ""): Flow<List<Game>> {
+        return if (query.isEmpty() && genre.isEmpty()) gameDao.getGamesByType("cloud") 
+        else gameDao.getGamesByTypeSearch("cloud", query, genre)
+    }
+
+    fun getFreeGames(query: String = "", genre: String = ""): Flow<List<Game>> {
+        return if (query.isEmpty() && genre.isEmpty()) gameDao.getGamesByType("free") 
+        else gameDao.getGamesByTypeSearch("free", query, genre)
+    }
+
     fun getFeaturedGames(): Flow<List<Game>> = gameDao.getFeaturedGames()
     
     suspend fun addGame(game: Game) = gameDao.insertGame(game)
     suspend fun removeGame(id: Int) = gameDao.deleteGame(id)
+    suspend fun rateGame(gameId: Int, userId: Int, rating: Int, game: Game) {
+        userRatingDao.insertRating(UserRating(userId = userId, gameId = gameId, rating = rating))
+        val avg = userRatingDao.getAverageRating(gameId) ?: 0f
+        gameDao.insertGame(game.copy(rating = avg))
+    }
 
     // --- Steam Accounts ---
-    fun getAllSteamAccounts(): Flow<List<SteamAccount>> = steamAccountDao.getAllAccounts()
+    fun getSteamAccounts(query: String = ""): Flow<List<SteamAccount>> {
+        return if (query.isEmpty()) steamAccountDao.getAllAccounts()
+        else steamAccountDao.searchAccounts(query)
+    }
     suspend fun addSteamAccount(account: SteamAccount) = steamAccountDao.insertAccount(account)
     suspend fun removeSteamAccount(id: Int) = steamAccountDao.deleteAccount(id)
 

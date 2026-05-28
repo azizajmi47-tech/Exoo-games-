@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GameDao {
+    @Query("SELECT * FROM games WHERE type = :type AND (name LIKE '%' || :query || '%' OR genre LIKE '%' || :query || '%') AND (genre = :genre OR :genre = '') ORDER BY id DESC")
+    fun getGamesByTypeSearch(type: String, query: String, genre: String): Flow<List<Game>>
+
     @Query("SELECT * FROM games WHERE type = :type ORDER BY id DESC")
     fun getGamesByType(type: String): Flow<List<Game>>
 
@@ -26,6 +29,9 @@ interface GameDao {
 
 @Dao
 interface SteamAccountDao {
+    @Query("SELECT * FROM steam_accounts WHERE username LIKE '%' || :query || '%' OR availableGames LIKE '%' || :query || '%' ORDER BY id DESC")
+    fun searchAccounts(query: String): Flow<List<SteamAccount>>
+
     @Query("SELECT * FROM steam_accounts ORDER BY id DESC")
     fun getAllAccounts(): Flow<List<SteamAccount>>
     
@@ -55,4 +61,16 @@ interface UserDao {
     
     @Query("DELETE FROM users WHERE id = :id")
     suspend fun deleteUser(id: Int)
+}
+
+@Dao
+interface UserRatingDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRating(rating: UserRating)
+
+    @Query("SELECT AVG(rating) FROM user_ratings WHERE gameId = :gameId")
+    suspend fun getAverageRating(gameId: Int): Float?
+
+    @Query("SELECT rating FROM user_ratings WHERE gameId = :gameId AND userId = :userId LIMIT 1")
+    suspend fun getUserRating(gameId: Int, userId: Int): Int?
 }

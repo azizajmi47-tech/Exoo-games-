@@ -18,8 +18,13 @@ import com.example.ui.theme.*
 
 @Composable
 fun FreeGamesScreen(viewModel: ExooViewModel) {
-    val games by viewModel.repository.getFreeGames().collectAsState(initial = emptyList())
+    val query by viewModel.searchQuery.collectAsState()
+    val genre by viewModel.selectedGenre.collectAsState()
+    val games by viewModel.repository.getFreeGames(query, genre).collectAsState(initial = emptyList())
     
+    val genres = listOf("Action", "RPG", "FPS", "Strategy", "Adventure")
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -33,7 +38,17 @@ fun FreeGamesScreen(viewModel: ExooViewModel) {
                 color = ExooTextSecondary,
                 letterSpacing = 1.sp
             )
-            Text("Filter", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ExooAccentBlue)
+            Box {
+                TextButton(onClick = { isDropdownExpanded = true }) {
+                    Text(if (genre.isEmpty()) "Filter: All" else "Filter: $genre", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ExooAccentBlue)
+                }
+                DropdownMenu(expanded = isDropdownExpanded, onDismissRequest = { isDropdownExpanded = false }) {
+                    DropdownMenuItem(text = { Text("All Genres") }, onClick = { viewModel.updateGenre(""); isDropdownExpanded = false })
+                    genres.forEach { g ->
+                        DropdownMenuItem(text = { Text(g) }, onClick = { viewModel.updateGenre(g); isDropdownExpanded = false })
+                    }
+                }
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -45,7 +60,7 @@ fun FreeGamesScreen(viewModel: ExooViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(games) { game -> GameCard(game) }
+                items(games) { game -> GameCard(game, viewModel) }
             }
         }
     }

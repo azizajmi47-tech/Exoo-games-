@@ -23,7 +23,8 @@ import com.example.ui.theme.*
 
 @Composable
 fun SteamAccountsScreen(viewModel: ExooViewModel) {
-    val accounts by viewModel.repository.getAllSteamAccounts().collectAsState(initial = emptyList())
+    val query by viewModel.searchQuery.collectAsState()
+    val accounts by viewModel.repository.getSteamAccounts(query).collectAsState(initial = emptyList())
     val currentUser by viewModel.currentUser.collectAsState()
 
     LazyColumn(
