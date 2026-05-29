@@ -93,7 +93,7 @@ fun ExooApp() {
                                 Text("LOGIN", color = ExooTextPrimary)
                             }
                         } else {
-                            if (currentUser?.role == "admin") {
+                            if (currentUser?.role == "admin" || currentUser?.email == "ajmiaziz541@gmail.com") {
                                 IconButton(onClick = { navController.navigate(Routes.Admin) }, modifier = Modifier.clip(CircleShape).background(ExooCard)) {
                                     Icon(Icons.Default.Settings, contentDescription = "Admin Area", tint = ExooTextSecondary)
                                 }

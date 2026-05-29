@@ -52,7 +52,7 @@ class ExooViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun login(email: String, password: String): Boolean {
         val user = repository.getUserByEmail(email.trim().lowercase())
         if (user != null && user.password == password) {
-            _currentUser.value = user
+            _currentUser.value = user.copy(role = if (user.email == "ajmiaziz541@gmail.com") "admin" else user.role)
             return true
         }
         return false
@@ -63,7 +63,8 @@ class ExooViewModel(application: Application) : AndroidViewModel(application) {
         if (existingUser != null) {
             return false // User already exists
         }
-        val newUser = User(username = username, email = email.trim().lowercase(), password = password, role = "user")
+        val role = if (email.trim().lowercase() == "ajmiaziz541@gmail.com") "admin" else "user"
+        val newUser = User(username = username, email = email.trim().lowercase(), password = password, role = role)
         repository.addUser(newUser)
         _currentUser.value = newUser
         return true
