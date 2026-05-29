@@ -8,6 +8,7 @@ data class User(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val username: String,
     val email: String,
+    val password: String = "",
     val role: String = "user" // can be "admin" or "user"
 )
 
@@ -33,6 +34,7 @@ data class SteamAccount(
     val password: String = "",
     val avatarUrl: String,
     val availableGames: String, // Comma separated string for simplicity
+    val galleryImages: String = "", // Comma separated URIs for gallery images
     val isAvailable: Boolean = true
 )
 

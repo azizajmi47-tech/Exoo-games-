@@ -18,6 +18,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(viewModel: ExooViewModel, onNavigateBack: () -> Unit) {
+    var isLogin by remember { mutableStateOf(true) }
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -36,16 +38,39 @@ fun AuthScreen(viewModel: ExooViewModel, onNavigateBack: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "LOGIN", 
+                    if (isLogin) "LOGIN" else "REGISTER", 
                     fontSize = 24.sp, 
                     fontWeight = FontWeight.Bold, 
                     color = ExooTextPrimary,
                     letterSpacing = 2.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Use admin@exoo.com or user@exoo.com", fontSize = 12.sp, color = ExooAccentBlue)
+                Text(if (isLogin) "Welcome back!" else "Create a new account (@gmail.com)", fontSize = 12.sp, color = ExooAccentBlue)
                 Spacer(modifier = Modifier.height(24.dp))
                 
+                if (!isLogin) {
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { 
+                            username = it
+                            errorMessage = null 
+                        },
+                        label = { Text("Username") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = ExooAccentPurple,
+                            unfocusedBorderColor = ExooCardBorder,
+                            focusedTextColor = ExooTextPrimary,
+                            unfocusedTextColor = ExooTextPrimary,
+                            focusedLabelColor = ExooAccentPurple,
+                            unfocusedLabelColor = ExooTextSecondary
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
                 OutlinedTextField(
                     value = email,
                     onValueChange = { 
@@ -94,11 +119,26 @@ fun AuthScreen(viewModel: ExooViewModel, onNavigateBack: () -> Unit) {
                 Button(
                     onClick = {
                         coroutineScope.launch {
-                            val success = viewModel.login(email)
-                            if (success) {
-                                onNavigateBack()
+                            if (isLogin) {
+                                val success = viewModel.login(email, password)
+                                if (success) {
+                                    onNavigateBack()
+                                } else {
+                                    errorMessage = "Invalid email or password"
+                                }
                             } else {
-                                errorMessage = "Invalid email or password"
+                                if (email.isBlank() || password.isBlank() || username.isBlank()) {
+                                    errorMessage = "Please fill all fields"
+                                } else if (!email.endsWith("@gmail.com")) {
+                                    errorMessage = "Please use a valid @gmail.com email"
+                                } else {
+                                    val success = viewModel.register(username, email, password)
+                                    if (success) {
+                                        onNavigateBack()
+                                    } else {
+                                        errorMessage = "Email already exists"
+                                    }
+                                }
                             }
                         }
                     },
@@ -106,7 +146,12 @@ fun AuthScreen(viewModel: ExooViewModel, onNavigateBack: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(containerColor = ExooAccentPurple),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("SIGN IN", fontWeight = FontWeight.Bold, color = ExooTextPrimary)
+                    Text(if (isLogin) "SIGN IN" else "SIGN UP", fontWeight = FontWeight.Bold, color = ExooTextPrimary)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                TextButton(onClick = { isLogin = !isLogin; errorMessage = null }) {
+                    Text(if (isLogin) "Don't have an account? Register" else "Already have an account? Login", color = ExooTextSecondary, fontSize = 12.sp)
                 }
             }
         }

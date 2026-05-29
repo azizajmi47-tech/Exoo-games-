@@ -26,10 +26,10 @@ class ExooViewModel(application: Application) : AndroidViewModel(application) {
         // Create default admin on startup for demonstration
         viewModelScope.launch {
             if (repository.getUserByEmail("admin@exoo.com") == null) {
-                repository.addUser(User(username = "Exoo Admin", email = "admin@exoo.com", role = "admin"))
+                repository.addUser(User(username = "Exoo Admin", email = "admin@exoo.com", password = "admin", role = "admin"))
             }
             if (repository.getUserByEmail("user@exoo.com") == null) {
-                repository.addUser(User(username = "Player One", email = "user@exoo.com", role = "user"))
+                repository.addUser(User(username = "Player One", email = "user@exoo.com", password = "123", role = "user"))
             }
         }
     }
@@ -49,13 +49,24 @@ class ExooViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    suspend fun login(email: String): Boolean {
+    suspend fun login(email: String, password: String): Boolean {
         val user = repository.getUserByEmail(email.trim().lowercase())
-        if (user != null) {
+        if (user != null && user.password == password) {
             _currentUser.value = user
             return true
         }
         return false
+    }
+
+    suspend fun register(username: String, email: String, password: String): Boolean {
+        val existingUser = repository.getUserByEmail(email.trim().lowercase())
+        if (existingUser != null) {
+            return false // User already exists
+        }
+        val newUser = User(username = username, email = email.trim().lowercase(), password = password, role = "user")
+        repository.addUser(newUser)
+        _currentUser.value = newUser
+        return true
     }
     
     fun logout() {

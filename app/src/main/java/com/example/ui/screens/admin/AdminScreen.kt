@@ -1,8 +1,12 @@
 package com.example.ui.screens.admin
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,7 +64,18 @@ fun AddSteamAccountForm(viewModel: ExooViewModel, snackbarHostState: SnackbarHos
     var password by remember { mutableStateOf("") }
     var games by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
+    var galleryImages by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
+
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let { imageUrl = it.toString() }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            galleryImages = uris.joinToString(",") { it.toString() }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text("Add New Steam Account", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ExooTextPrimary)
@@ -69,18 +84,33 @@ fun AddSteamAccountForm(viewModel: ExooViewModel, snackbarHostState: SnackbarHos
         AdminTextField(value = username, onValueChange = { username = it }, label = "Username")
         AdminTextField(value = password, onValueChange = { password = it }, label = "Password")
         AdminTextField(value = games, onValueChange = { games = it }, label = "Included Games (comma separated)")
-        AdminTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = "Image URL")
         
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            AdminTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = "Main Cover Image URL/URI", modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = { launcher.launch("image/*") }) {
+                Icon(Icons.Default.Add, contentDescription = "Pick Image", tint = ExooAccentPurple)
+            }
+        }
+        
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            AdminTextField(value = galleryImages, onValueChange = { galleryImages = it }, label = "Gallery Images (comma separated)", modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = { galleryLauncher.launch("image/*") }) {
+                Icon(Icons.Default.Add, contentDescription = "Pick Gallery Images", tint = ExooAccentPurple)
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
                 if (username.isNotBlank()) {
                     coroutineScope.launch {
                         viewModel.repository.addSteamAccount(
-                            SteamAccount(username = username, password = password, availableGames = games, avatarUrl = imageUrl)
+                            SteamAccount(username = username, password = password, availableGames = games, avatarUrl = imageUrl, galleryImages = galleryImages)
                         )
                         snackbarHostState.showSnackbar("Steam Account Added")
-                        username = ""; password = ""; games = ""; imageUrl = ""
+                        username = ""; password = ""; games = ""; imageUrl = ""; galleryImages = ""
                     }
                 }
             },
@@ -100,6 +130,10 @@ fun AddEmulatorForm(viewModel: ExooViewModel, snackbarHostState: SnackbarHostSta
     var imageUrl by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let { imageUrl = it.toString() }
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text("Add New Emulator", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ExooTextPrimary)
         Spacer(modifier = Modifier.height(16.dp))
@@ -107,7 +141,14 @@ fun AddEmulatorForm(viewModel: ExooViewModel, snackbarHostState: SnackbarHostSta
         AdminTextField(value = name, onValueChange = { name = it }, label = "Emulator Name")
         AdminTextField(value = description, onValueChange = { description = it }, label = "Description")
         AdminTextField(value = downloadUrl, onValueChange = { downloadUrl = it }, label = "Download Link")
-        AdminTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = "Image URL")
+        
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            AdminTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = "Image URL/URI", modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = { launcher.launch("image/*") }) {
+                Icon(Icons.Default.Add, contentDescription = "Pick Image", tint = ExooAccentPurple)
+            }
+        }
         
         Spacer(modifier = Modifier.height(16.dp))
         Button(
@@ -131,12 +172,12 @@ fun AddEmulatorForm(viewModel: ExooViewModel, snackbarHostState: SnackbarHostSta
 }
 
 @Composable
-fun AdminTextField(value: String, onValueChange: (String) -> Unit, label: String) {
+fun AdminTextField(value: String, onValueChange: (String) -> Unit, label: String, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(bottom = 8.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = ExooAccentPurple,
             unfocusedBorderColor = ExooCardBorder,

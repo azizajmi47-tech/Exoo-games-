@@ -9,7 +9,7 @@ class ExooRepository(context: Context) {
     private val db = Room.databaseBuilder(
         context.applicationContext,
         ExooDatabase::class.java, "exoo-database"
-    ).fallbackToDestructiveMigration().build()
+    ).fallbackToDestructiveMigration(true).build()
 
     private val gameDao = db.gameDao()
     private val steamAccountDao = db.steamAccountDao()

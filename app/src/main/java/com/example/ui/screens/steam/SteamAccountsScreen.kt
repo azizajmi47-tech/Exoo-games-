@@ -5,6 +5,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -71,7 +72,7 @@ fun SteamAccountCard(account: SteamAccount, isLoggedIn: Boolean) {
     val context = LocalContext.current
     
     Card(
-        modifier = Modifier.fillMaxWidth().let { if (!account.isAvailable) it.fillMaxWidth(0.9f) else it },
+        modifier = Modifier.let { if (!account.isAvailable) it.fillMaxWidth(0.9f) else it.fillMaxWidth() },
         colors = CardDefaults.cardColors(containerColor = ExooCard),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, ExooCardBorder)
@@ -134,6 +135,26 @@ fun SteamAccountCard(account: SteamAccount, isLoggedIn: Boolean) {
                         unfocusedTextColor = ExooTextPrimary
                     )
                 )
+
+                if (account.galleryImages.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Inside the Account", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = ExooTextPrimary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val images = account.galleryImages.split(",").filter { it.isNotBlank() }
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(images) { imageUrl ->
+                            AsyncImage(
+                                model = ImageRequest.Builder(context).data(imageUrl).crossfade(true).build(),
+                                contentDescription = "Gallery Image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(120.dp, 80.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .border(1.dp, ExooCardBorder, RoundedCornerShape(8.dp))
+                            )
+                        }
+                    }
+                }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
